@@ -96,7 +96,7 @@
     hostElement.innerHTML += new Date(data.DateTime).toLocaleString();
     hostElement.innerHTML += "\n";
     hostElement.innerHTML += "Host              Service        ms\n";
-    hostElement.innerHTML += "────────────────────────────────────\n";
+    hostElement.innerHTML += "───────────────────────────────────────\n";
 	  
     services.forEach(service => {
       const emoji = service.isAvailable ? "\u{1F7E2}" : "\u{1F534}"; // Green or Red circle
