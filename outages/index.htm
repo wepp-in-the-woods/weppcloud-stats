@@ -82,11 +82,14 @@ db.collection("health")
 
         const theTime = data.DateTime;
         services.forEach(service => {
-            if (!serviceMap[theTime]) {
-                serviceMap[theTime] = {};
-            }
+            if (!serviceMap[theTime])
+              serviceMap[theTime] = {};
+
             const serviceKey = service.host + ' ' + service.service; // Create a unique key for each service
+
             serviceMap[theTime][serviceKey] = service.isAvailable ? "\u{1F7E2}" : "\u{1F534}";
+            if (service.isAvailable && service.ms > 500)
+                serviceMap[theTime][serviceKey] = "\u{1F7E3}"; // Magenta circle
         });
     });
     const table = document.getElementById('status-table');
