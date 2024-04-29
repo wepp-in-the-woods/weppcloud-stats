@@ -4,124 +4,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.85">
     <title>Service Outages History</title>
-    <style>
-        body {
-            font-family: 'Roboto Mono', monospace;
-            color: #ffffff;
-            background-color: #23272A;
-            margin: 0;
-            padding: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #99AAB5;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #2C2F33;
-        }
-        td {
-            text-align: center;
-        }
-        .red {
-            color: #FF6347;
-        }
-        .green {
-            color: #43b581;
-        }
-    </style>
+<style>
+body {
+    font-family: 'Roboto Mono', monospace;
+    color: #ffffff;
+    background-color: #23272A;
+    margin: 0;
+    padding: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #99AAB5;
+    padding: 8px;
+    text-align: left;
+}
+th {
+    background-color: #2C2F33;
+}
+td {
+    text-align: center;
+}
+.red {
+    color: #FF6347;
+}
+.green {
+    color: #43b581;
+}
+</style>
 </head>
 <body>
-    <h4>Service Outages</h4>
-    <table id="status-table">
-        <thead>
-            <tr>
-                <th>Time</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAYBMUk8n3pOObEei08MqCdwWktly69IVY",
-            authDomain: "weppcloud-stats.firebaseapp.com",
-            projectId: "weppcloud-stats",
-            storageBucket: "weppcloud-stats.appspot.com",
-            messagingSenderId: "120118525240",
-            appId: "1:120118525240:web:b1e0290ad67a97fdfe55cd"
-          };
-        
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+<h4>Service Outages</h4>
+<table id="status-table">
+    <thead>
+        <tr>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyAYBMUk8n3pOObEei08MqCdwWktly69IVY",
+    authDomain: "weppcloud-stats.firebaseapp.com",
+    projectId: "weppcloud-stats",
+    storageBucket: "weppcloud-stats.appspot.com",
+    messagingSenderId: "120118525240",
+    appId: "1:120118525240:web:b1e0290ad67a97fdfe55cd"
+  };
 
-        const now = new Date();
-        const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-        db.collection("health")
-        .where("allAvailable", "==", false) // Ensure this field is correctly named and typed in your Firestore.
-        .orderBy("DateTime", "desc")
-        .get()
-        .then(querySnapshot => {
-            const serviceMap = {};
-            if (querySnapshot.empty) {
-                console.log("No matching documents.");
-                return;
+const now = new Date();
+const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+
+db.collection("health")
+.where("allAvailable", "==", false) // Ensure this field is correctly named and typed in your Firestore.
+.orderBy("DateTime", "desc")
+.get()
+.then(querySnapshot => {
+    const serviceMap = {};
+    if (querySnapshot.empty) {
+        console.log("No matching documents.");
+        return;
+    }
+    querySnapshot.forEach(doc => {
+        const data = doc.data();
+        console.log(data); // This will show the data of each document that matches the criteria
+        const services = data.Services;
+
+        const theTime = data.DateTime;
+        services.forEach(service => {
+            if (!serviceMap[theTime]) {
+                serviceMap[theTime] = {};
             }
-            querySnapshot.forEach(doc => {
-                const data = doc.data();
-                console.log(data); // This will show the data of each document that matches the criteria
-                const services = data.Services;
-
-                const theTime = data.DateTime;
-                services.forEach(service => {
-                    if (!serviceMap[theTime]) {
-                        serviceMap[theTime] = {};
-                    }
-                    const serviceKey = service.host + ' ' + service.service; // Create a unique key for each service
-                    serviceMap[theTime][serviceKey] = service.isAvailable ? "\u{1F7E2}" : "\u{1F534}";
-                });
-            });
-            const table = document.getElementById('status-table');
-            const headerRow = table.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0];
-  
-            const serviceKeys = Object.keys(serviceMap[Object.keys(serviceMap)[0]]);
-            serviceKeys.sort();
-
-            serviceKeys.forEach(serviceKey => {
-                const headerCell = document.createElement('th');
-                headerCell.textContent = serviceKey;
-                headerRow.appendChild(headerCell);
-            });
-            
-            const body = table.getElementsByTagName('tbody')[0];
-            const dateTimes = Object.keys(serviceMap);
-
-            dateTimes.forEach(theTime => {
-                const row = document.createElement('tr');
-                const timeCell = document.createElement('td');
-                timeCell.textContent = theTime;
-                row.appendChild(timeCell);
-                
-                serviceKeys.forEach(serviceKey => {
-                    const serviceCell = document.createElement('td');
-                    serviceCell.innerHTML = serviceMap[theTime][serviceKey] || "\u{1F534}";
-                    row.appendChild(serviceCell);
-                });
-                body.appendChild(row);
-            });
-        })
-        .catch(error => {
-            console.error("Error getting documents: ", error);
+            const serviceKey = service.host + ' ' + service.service; // Create a unique key for each service
+            serviceMap[theTime][serviceKey] = service.isAvailable ? "\u{1F7E2}" : "\u{1F534}";
         });
+    });
+    const table = document.getElementById('status-table');
+    const headerRow = table.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0];
 
-    </script>
+    const serviceKeys = Object.keys(serviceMap[Object.keys(serviceMap)[0]]);
+    serviceKeys.sort();
+
+    serviceKeys.forEach(serviceKey => {
+        const headerCell = document.createElement('th');
+        headerCell.textContent = serviceKey;
+        headerRow.appendChild(headerCell);
+    });
+    
+    const body = table.getElementsByTagName('tbody')[0];
+    const dateTimes = Object.keys(serviceMap);
+
+    dateTimes.forEach(theTime => {
+        const row = document.createElement('tr');
+        const timeCell = document.createElement('td');
+        timeCell.textContent = theTime;
+        row.appendChild(timeCell);
+        
+        serviceKeys.forEach(serviceKey => {
+            const serviceCell = document.createElement('td');
+            serviceCell.innerHTML = serviceMap[theTime][serviceKey] || "\u{1F534}";
+            row.appendChild(serviceCell);
+        });
+        body.appendChild(row);
+    });
+})
+.catch(error => {
+    console.error("Error getting documents: ", error);
+});
+</script>
 </body>
 </html>
