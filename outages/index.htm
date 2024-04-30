@@ -110,7 +110,7 @@ db.collection("health")
     dateTimes.forEach(theTime => {
         const row = document.createElement('tr');
         const timeCell = document.createElement('td');
-        timeCell.textContent = theTime;
+        timeCell.textContent = Date(theTime).toLocaleString()
         row.appendChild(timeCell);
         
         serviceKeys.forEach(serviceKey => {
